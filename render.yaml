@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: hdr-merge
+    runtime: node
+    buildCommand: npm install
+    startCommand: node server-autoenhance.js
+    envVars:
+      - key: AUTOENHANCE_API_KEY
+        sync: false

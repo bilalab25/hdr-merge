@@ -1,0 +1,1347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HDR Merge Pro - AutoEnhance.ai</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0b;
+            --bg-secondary: #111113;
+            --bg-tertiary: #18181b;
+            --bg-card: #1c1c1f;
+            --border-subtle: #27272a;
+            --border-medium: #3f3f46;
+            --text-primary: #fafafa;
+            --text-secondary: #a1a1aa;
+            --text-muted: #71717a;
+            --accent: #14b8a6;
+            --accent-light: #2dd4bf;
+            --accent-dark: #0d9488;
+            --accent-glow: rgba(20, 184, 166, 0.15);
+            --success: #22c55e;
+            --error: #ef4444;
+            --warning: #f59e0b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            min-height: 100vh;
+            color: var(--text-primary);
+            overflow-x: hidden;
+        }
+
+        /* Subtle Grid Background */
+        .bg-pattern {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background-image:
+                linear-gradient(rgba(20, 184, 166, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(20, 184, 166, 0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+        }
+
+        .bg-gradient {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            background:
+                radial-gradient(ellipse at 0% 0%, rgba(20, 184, 166, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 100% 100%, rgba(20, 184, 166, 0.05) 0%, transparent 50%);
+        }
+
+        /* Container */
+        .app-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 48px 24px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+
+        .logo {
+            display: inline-flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 16px;
+        }
+
+        .logo-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 30px var(--accent-glow);
+        }
+
+        .logo-icon svg {
+            width: 26px;
+            height: 26px;
+            color: white;
+        }
+
+        .logo-text {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: -0.5px;
+        }
+
+        .logo-badge {
+            background: var(--accent);
+            color: var(--bg-primary);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .tagline {
+            font-size: 16px;
+            color: var(--text-secondary);
+            font-weight: 400;
+            margin-bottom: 12px;
+        }
+
+        .powered-by {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .powered-by span {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        /* Card */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 16px;
+            padding: 32px;
+            transition: border-color 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: var(--border-medium);
+        }
+
+        /* Mode Selection */
+        .mode-selection {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .section-title h2 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .section-title p {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .mode-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        @media (max-width: 640px) {
+            .mode-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .mode-card {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-subtle);
+            border-radius: 14px;
+            padding: 28px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .mode-card:hover {
+            border-color: var(--accent);
+            background: linear-gradient(135deg, var(--bg-tertiary) 0%, rgba(20, 184, 166, 0.05) 100%);
+            transform: translateY(-2px);
+        }
+
+        .mode-icon {
+            width: 56px;
+            height: 56px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .mode-icon svg {
+            width: 28px;
+            height: 28px;
+            color: var(--accent);
+        }
+
+        .mode-card:hover .mode-icon {
+            border-color: var(--accent);
+            box-shadow: 0 0 20px var(--accent-glow);
+        }
+
+        .mode-card h3 {
+            font-size: 17px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .mode-card p {
+            color: var(--text-secondary);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .mode-badge {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            background: rgba(20, 184, 166, 0.15);
+            color: var(--accent);
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Upload Section */
+        .upload-section {
+            display: none;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .upload-section.active {
+            display: block;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            background: transparent;
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-bottom: 24px;
+        }
+
+        .back-button:hover {
+            border-color: var(--border-medium);
+            color: var(--text-primary);
+        }
+
+        .back-button svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Dropzone */
+        .dropzone {
+            border: 2px dashed var(--border-medium);
+            border-radius: 14px;
+            padding: 48px 32px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: var(--bg-tertiary);
+        }
+
+        .dropzone:hover,
+        .dropzone.dragover {
+            border-color: var(--accent);
+            background: linear-gradient(135deg, var(--bg-tertiary) 0%, rgba(20, 184, 166, 0.05) 100%);
+        }
+
+        .dropzone.has-files {
+            border-color: var(--success);
+            background: rgba(34, 197, 94, 0.05);
+        }
+
+        .dropzone-icon {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .dropzone:hover .dropzone-icon {
+            border-color: var(--accent);
+            box-shadow: 0 0 25px var(--accent-glow);
+        }
+
+        .dropzone-icon svg {
+            width: 32px;
+            height: 32px;
+            color: var(--accent);
+        }
+
+        .dropzone h3 {
+            font-size: 17px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .dropzone p {
+            color: var(--text-muted);
+            font-size: 13px;
+            margin-bottom: 16px;
+        }
+
+        .dropzone-hint {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 6px;
+            color: var(--text-secondary);
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .dropzone-hint svg {
+            width: 14px;
+            height: 14px;
+            color: var(--accent);
+        }
+
+        /* Image Previews */
+        .image-previews {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 14px;
+            margin-top: 20px;
+        }
+
+        .preview-item {
+            position: relative;
+            aspect-ratio: 4/3;
+            border-radius: 10px;
+            overflow: hidden;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-subtle);
+            animation: scaleIn 0.3s ease;
+        }
+
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .preview-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .preview-item .remove-btn {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            width: 24px;
+            height: 24px;
+            background: rgba(0, 0, 0, 0.7);
+            border: none;
+            border-radius: 6px;
+            color: var(--text-primary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: all 0.2s ease;
+            font-size: 14px;
+        }
+
+        .preview-item:hover .remove-btn {
+            opacity: 1;
+        }
+
+        .preview-item .remove-btn:hover {
+            background: var(--error);
+        }
+
+        .preview-item .file-name {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 6px 10px;
+            background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+            color: var(--text-primary);
+            font-size: 10px;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Enhancement Styles */
+        .style-section {
+            margin-top: 28px;
+        }
+
+        .style-section h4 {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .style-section h4::before {
+            content: '';
+            width: 3px;
+            height: 16px;
+            background: var(--accent);
+            border-radius: 2px;
+        }
+
+        .style-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        @media (max-width: 640px) {
+            .style-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .style-option {
+            position: relative;
+        }
+
+        .style-option input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .style-option label {
+            display: block;
+            padding: 14px 12px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-subtle);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+
+        .style-option label:hover {
+            border-color: var(--border-medium);
+        }
+
+        .style-option input:checked + label {
+            border-color: var(--accent);
+            background: rgba(20, 184, 166, 0.1);
+        }
+
+        .style-icon {
+            font-size: 20px;
+            margin-bottom: 6px;
+        }
+
+        .style-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+
+        .style-desc {
+            font-size: 10px;
+            color: var(--text-muted);
+        }
+
+        /* Submit Button */
+        .submit-section {
+            margin-top: 28px;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 16px 24px;
+            background: var(--accent);
+            border: none;
+            border-radius: 10px;
+            color: var(--bg-primary);
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .submit-btn:hover:not(:disabled) {
+            background: var(--accent-light);
+            box-shadow: 0 0 30px var(--accent-glow);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .submit-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        /* Loading State */
+        .loading-section {
+            display: none;
+            text-align: center;
+            padding: 48px 20px;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .loading-section.active {
+            display: block;
+        }
+
+        .loader-container {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 28px;
+        }
+
+        .loader-ring {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 3px solid var(--border-subtle);
+            border-top-color: var(--accent);
+            animation: spin 1s linear infinite;
+        }
+
+        .loader-ring:nth-child(2) {
+            width: 60px;
+            height: 60px;
+            top: 10px;
+            left: 10px;
+            border-top-color: var(--accent-light);
+            animation-duration: 0.8s;
+            animation-direction: reverse;
+        }
+
+        .loader-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .loader-icon svg {
+            width: 24px;
+            height: 24px;
+            color: var(--accent);
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-section h3 {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .loading-section p {
+            color: var(--text-secondary);
+            font-size: 13px;
+            margin-bottom: 28px;
+        }
+
+        /* Progress Bar */
+        .progress-wrapper {
+            max-width: 360px;
+            margin: 0 auto;
+        }
+
+        .progress-bar-container {
+            height: 6px;
+            background: var(--bg-tertiary);
+            border-radius: 100px;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--accent-dark), var(--accent), var(--accent-light));
+            border-radius: 100px;
+            transition: width 0.4s ease;
+        }
+
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .progress-status {
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        .progress-percent {
+            color: var(--accent);
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        /* Result Section */
+        .result-section {
+            display: none;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .result-section.active {
+            display: block;
+        }
+
+        .result-header {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        .success-icon {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 20px;
+            background: var(--success);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: bounceIn 0.5s ease;
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.15); }
+            100% { transform: scale(1); }
+        }
+
+        .success-icon svg {
+            width: 32px;
+            height: 32px;
+            color: white;
+        }
+
+        .result-header h2 {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .result-header p {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .result-image-container {
+            position: relative;
+            border-radius: 14px;
+            overflow: hidden;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-subtle);
+        }
+
+        .result-image {
+            width: 100%;
+            display: block;
+        }
+
+        .result-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 480px) {
+            .result-actions {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .action-btn {
+            padding: 14px 20px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            border: none;
+            font-family: inherit;
+        }
+
+        .action-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .action-btn.primary {
+            background: var(--success);
+            color: white;
+        }
+
+        .action-btn.primary:hover {
+            filter: brightness(1.1);
+        }
+
+        .action-btn.secondary {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-primary);
+        }
+
+        .action-btn.secondary:hover {
+            border-color: var(--border-medium);
+        }
+
+        /* Error Message */
+        .error-message {
+            display: none;
+            padding: 14px 16px;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 10px;
+            color: #fca5a5;
+            font-size: 13px;
+            margin-top: 14px;
+            animation: shake 0.4s ease;
+        }
+
+        .error-message.active {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-4px); }
+            75% { transform: translateX(4px); }
+        }
+
+        .error-message svg {
+            flex-shrink: 0;
+            width: 18px;
+            height: 18px;
+            color: var(--error);
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Utilities */
+        .hidden {
+            display: none !important;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .app-container {
+                padding: 24px 16px;
+            }
+
+            .card {
+                padding: 24px;
+            }
+
+            .logo-text {
+                font-size: 22px;
+            }
+
+            .section-title h2 {
+                font-size: 20px;
+            }
+
+            .dropzone {
+                padding: 36px 20px;
+            }
+
+            .mode-card {
+                padding: 22px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-gradient"></div>
+    <div class="bg-pattern"></div>
+
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <div class="logo-icon">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                </div>
+                <span class="logo-text">HDR Merge</span>
+                <span class="logo-badge">Pro</span>
+            </div>
+            <p class="tagline">AI-powered HDR enhancement for professional results</p>
+            <div class="powered-by">
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                </svg>
+                Powered by <span>AutoEnhance.ai</span>
+            </div>
+        </header>
+
+        <!-- Mode Selection -->
+        <div class="card mode-selection" id="modeSelection">
+            <div class="section-title">
+                <h2>Select Processing Mode</h2>
+                <p>Choose the HDR processing method for your images</p>
+            </div>
+
+            <div class="mode-grid">
+                <div class="mode-card" onclick="selectMode('single')">
+                    <div class="mode-icon">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                    </div>
+                    <h3>Single Image HDR</h3>
+                    <p>Upload one image for AI-powered HDR enhancement with expanded dynamic range.</p>
+                </div>
+
+                <div class="mode-card" onclick="selectMode('triple')">
+                    <span class="mode-badge">Recommended</span>
+                    <div class="mode-icon">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                        </svg>
+                    </div>
+                    <h3>3-Image HDR Merge</h3>
+                    <p>Upload three bracketed exposures for professional HDR with maximum dynamic range.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upload Section -->
+        <div class="card upload-section" id="uploadSection">
+            <button class="back-button" onclick="goBack()">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                </svg>
+                Back
+            </button>
+
+            <div class="section-title">
+                <h2 id="uploadTitle">Upload Images</h2>
+                <p id="uploadDesc">Drag and drop or click to select JPEG images</p>
+            </div>
+
+            <div class="dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()">
+                <div class="dropzone-icon">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                    </svg>
+                </div>
+                <h3>Drop images here</h3>
+                <p>or click to browse</p>
+                <div class="dropzone-hint">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <span id="fileHint">Select 3 JPEG images</span>
+                </div>
+            </div>
+            <input type="file" id="fileInput" accept="image/jpeg,image/jpg" multiple>
+
+            <div class="image-previews" id="imagePreviews"></div>
+
+            <!-- Enhancement Styles -->
+            <div class="style-section">
+                <h4>Enhancement Style</h4>
+                <div class="style-grid">
+                    <div class="style-option">
+                        <input type="radio" id="natural" name="preset" value="natural" checked>
+                        <label for="natural">
+                            <div class="style-icon">&#9679;</div>
+                            <div class="style-name">Natural</div>
+                            <div class="style-desc">Clean & balanced</div>
+                        </label>
+                    </div>
+                    <div class="style-option">
+                        <input type="radio" id="vibrant" name="preset" value="vibrant">
+                        <label for="vibrant">
+                            <div class="style-icon">&#9670;</div>
+                            <div class="style-name">Vibrant</div>
+                            <div class="style-desc">Bold colors</div>
+                        </label>
+                    </div>
+                    <div class="style-option">
+                        <input type="radio" id="warm" name="preset" value="warm">
+                        <label for="warm">
+                            <div class="style-icon">&#9728;</div>
+                            <div class="style-name">Warm</div>
+                            <div class="style-desc">Golden tones</div>
+                        </label>
+                    </div>
+                    <div class="style-option">
+                        <input type="radio" id="authentic" name="preset" value="authentic">
+                        <label for="authentic">
+                            <div class="style-icon">&#9673;</div>
+                            <div class="style-name">Authentic</div>
+                            <div class="style-desc">True to life</div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="error-message" id="errorMsg">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span id="errorText"></span>
+            </div>
+
+            <div class="submit-section">
+                <button class="submit-btn" id="submitBtn" onclick="processHDR()" disabled>
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                    Process HDR
+                </button>
+            </div>
+        </div>
+
+        <!-- Loading Section -->
+        <div class="card loading-section" id="loadingSection">
+            <div class="loader-container">
+                <div class="loader-ring"></div>
+                <div class="loader-ring"></div>
+                <div class="loader-icon">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                </div>
+            </div>
+            <h3>Processing HDR</h3>
+            <p>AI is enhancing your images</p>
+
+            <div class="progress-wrapper">
+                <div class="progress-bar-container">
+                    <div class="progress-bar-fill" id="progressBar"></div>
+                </div>
+                <div class="progress-info">
+                    <span class="progress-status" id="progressStatus">Initializing...</span>
+                    <span class="progress-percent" id="progressPercent">0%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Result Section -->
+        <div class="card result-section" id="resultSection">
+            <div class="result-header">
+                <div class="success-icon">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                </div>
+                <h2>HDR Complete</h2>
+                <p>Your enhanced image is ready for download</p>
+            </div>
+
+            <div class="result-image-container">
+                <img id="resultImage" class="result-image" alt="HDR Result">
+            </div>
+
+            <div class="result-actions">
+                <button class="action-btn primary" onclick="downloadImage()">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                    </svg>
+                    Download
+                </button>
+                <button class="action-btn secondary" onclick="resetApp()">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    New Image
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State
+        let selectedFiles = [];
+        let resultBlob = null;
+        let currentMode = null;
+        let progressInterval = null;
+
+        // DOM Elements
+        const modeSelection = document.getElementById('modeSelection');
+        const uploadSection = document.getElementById('uploadSection');
+        const loadingSection = document.getElementById('loadingSection');
+        const resultSection = document.getElementById('resultSection');
+        const dropzone = document.getElementById('dropzone');
+        const fileInput = document.getElementById('fileInput');
+        const imagePreviews = document.getElementById('imagePreviews');
+        const submitBtn = document.getElementById('submitBtn');
+        const errorMsg = document.getElementById('errorMsg');
+        const errorText = document.getElementById('errorText');
+
+        // Mode Selection
+        function selectMode(mode) {
+            currentMode = mode;
+            modeSelection.style.display = 'none';
+            uploadSection.classList.add('active');
+
+            const expectedCount = mode === 'single' ? 1 : 3;
+            document.getElementById('uploadTitle').textContent =
+                mode === 'single' ? 'Upload Image' : 'Upload Bracketed Images';
+            document.getElementById('uploadDesc').textContent =
+                mode === 'single' ? 'Select one JPEG image for enhancement' : 'Select three bracketed exposure images';
+            document.getElementById('fileHint').textContent =
+                mode === 'single' ? 'Select 1 JPEG image' : 'Select 3 JPEG images';
+
+            if (mode === 'single') {
+                fileInput.removeAttribute('multiple');
+            } else {
+                fileInput.setAttribute('multiple', 'multiple');
+            }
+        }
+
+        function goBack() {
+            currentMode = null;
+            selectedFiles = [];
+            fileInput.value = '';
+            imagePreviews.innerHTML = '';
+            dropzone.classList.remove('has-files');
+            submitBtn.disabled = true;
+            hideError();
+            uploadSection.classList.remove('active');
+            modeSelection.style.display = 'block';
+        }
+
+        // Drag and Drop
+        dropzone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropzone.classList.add('dragover');
+        });
+
+        dropzone.addEventListener('dragleave', () => {
+            dropzone.classList.remove('dragover');
+        });
+
+        dropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropzone.classList.remove('dragover');
+            const files = Array.from(e.dataTransfer.files);
+            handleFiles(files);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            const files = Array.from(e.target.files);
+            handleFiles(files);
+        });
+
+        function handleFiles(files) {
+            const expectedCount = currentMode === 'single' ? 1 : 3;
+
+            const jpegFiles = files.filter(f =>
+                f.type === 'image/jpeg' || f.type === 'image/jpg'
+            );
+
+            if (jpegFiles.length !== expectedCount) {
+                showError(`Please select exactly ${expectedCount} JPEG image${expectedCount > 1 ? 's' : ''}`);
+                return;
+            }
+
+            selectedFiles = jpegFiles;
+            hideError();
+            renderPreviews();
+            dropzone.classList.add('has-files');
+            submitBtn.disabled = false;
+        }
+
+        function renderPreviews() {
+            imagePreviews.innerHTML = '';
+            selectedFiles.forEach((file, index) => {
+                const div = document.createElement('div');
+                div.className = 'preview-item';
+                div.style.animationDelay = `${index * 0.1}s`;
+
+                const img = document.createElement('img');
+                img.src = URL.createObjectURL(file);
+
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'remove-btn';
+                removeBtn.innerHTML = '&times;';
+                removeBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    removeFile(index);
+                };
+
+                const fileName = document.createElement('div');
+                fileName.className = 'file-name';
+                fileName.textContent = file.name;
+
+                div.appendChild(img);
+                div.appendChild(removeBtn);
+                div.appendChild(fileName);
+                imagePreviews.appendChild(div);
+            });
+        }
+
+        function removeFile(index) {
+            selectedFiles.splice(index, 1);
+            fileInput.value = '';
+
+            if (selectedFiles.length === 0) {
+                dropzone.classList.remove('has-files');
+                submitBtn.disabled = true;
+            }
+            renderPreviews();
+        }
+
+        // Error Handling
+        function showError(message) {
+            errorText.textContent = message;
+            errorMsg.classList.add('active');
+        }
+
+        function hideError() {
+            errorMsg.classList.remove('active');
+        }
+
+        // Progress
+        function updateProgress(percent, status) {
+            document.getElementById('progressBar').style.width = percent + '%';
+            document.getElementById('progressPercent').textContent = percent + '%';
+            document.getElementById('progressStatus').textContent = status;
+        }
+
+        function startProgress() {
+            let progress = 0;
+            const stages = [
+                { target: 15, status: 'Uploading...' },
+                { target: 30, status: 'Registering...' },
+                { target: 50, status: 'Processing HDR...' },
+                { target: 70, status: 'Enhancing...' },
+                { target: 90, status: 'Finalizing...' }
+            ];
+            let stageIndex = 0;
+
+            progressInterval = setInterval(() => {
+                if (stageIndex < stages.length) {
+                    const stage = stages[stageIndex];
+                    if (progress < stage.target) {
+                        progress++;
+                        updateProgress(progress, stage.status);
+                    } else {
+                        stageIndex++;
+                    }
+                }
+            }, 1000);
+        }
+
+        function stopProgress(success) {
+            if (progressInterval) {
+                clearInterval(progressInterval);
+                progressInterval = null;
+            }
+            if (success) {
+                updateProgress(100, 'Complete');
+            }
+        }
+
+        // Process HDR
+        async function processHDR() {
+            const expectedCount = currentMode === 'single' ? 1 : 3;
+            if (selectedFiles.length !== expectedCount) {
+                showError(`Please select exactly ${expectedCount} image${expectedCount > 1 ? 's' : ''}`);
+                return;
+            }
+
+            const preset = document.querySelector('input[name="preset"]:checked').value;
+
+            const formData = new FormData();
+            selectedFiles.forEach(file => formData.append('images', file));
+            formData.append('preset', preset);
+            formData.append('mode', currentMode);
+
+            uploadSection.classList.remove('active');
+            loadingSection.classList.add('active');
+            updateProgress(0, 'Starting...');
+            startProgress();
+
+            try {
+                const response = await fetch('/api/merge-hdr', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                stopProgress(response.ok);
+
+                if (!response.ok) {
+                    let errorMessage = 'Failed to process HDR merge';
+                    try {
+                        const error = await response.json();
+                        errorMessage = error.details || error.error || errorMessage;
+                    } catch (e) {
+                        errorMessage = `Server error: ${response.status}`;
+                    }
+                    throw new Error(errorMessage);
+                }
+
+                resultBlob = await response.blob();
+                const imageUrl = URL.createObjectURL(resultBlob);
+
+                await new Promise(r => setTimeout(r, 400));
+
+                document.getElementById('resultImage').src = imageUrl;
+                loadingSection.classList.remove('active');
+                resultSection.classList.add('active');
+
+            } catch (error) {
+                stopProgress(false);
+                console.error('Error:', error);
+                loadingSection.classList.remove('active');
+                uploadSection.classList.add('active');
+                showError(error.message);
+            }
+        }
+
+        // Download
+        function downloadImage() {
+            if (!resultBlob) return;
+            const url = URL.createObjectURL(resultBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'hdr-enhanced.jpg';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // Reset
+        function resetApp() {
+            selectedFiles = [];
+            resultBlob = null;
+            fileInput.value = '';
+            imagePreviews.innerHTML = '';
+            dropzone.classList.remove('has-files');
+            submitBtn.disabled = true;
+            hideError();
+            resultSection.classList.remove('active');
+            uploadSection.classList.remove('active');
+            modeSelection.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
